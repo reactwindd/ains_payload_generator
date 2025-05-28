@@ -28,6 +28,8 @@
     ],
     "dependencies": {
         "dotenv": "^16.4.5",
-        "express": "^4.19.2"
+        "express": "^4.19.2",
+        "openai": "^4.103.0",
+        "re": "^0.1.4"
     }
 }

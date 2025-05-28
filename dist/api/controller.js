@@ -13,7 +13,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBook = exports.getID = void 0;
+exports.getBook = exports.deepReview = exports.getID = void 0;
+const openai_1 = require("openai");
 // ***************************************************************
 //
 // api/getid
@@ -37,9 +38,40 @@ exports.getID = getID;
 // api/getbook
 //
 // ***************************************************************
+function deepReview(title, publishedYear, author) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const openai = new openai_1.OpenAI({
+            baseURL: "https://api.deepseek.com",
+            apiKey: process.env.DEEPSEEK_API_KEY,
+        });
+        const completion = yield openai.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: `
+Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Use only:
+- Letters, commas, periods, and basic punctuation
+- No line breaks (\n), asterisks, or special formatting
+- Exactly 30 words
+- Simple English words (B1 level)`,
+                },
+            ],
+            model: "deepseek-chat",
+            response_format: {
+                type: "text",
+            },
+        });
+        let result = completion.choices[0].message.content;
+        console.log(result);
+        result = result.replace(/\\|\*|_/g, "");
+        console.log(result);
+        return result;
+    });
+}
+exports.deepReview = deepReview;
 function getBook() {
     return __awaiter(this, void 0, void 0, function* () {
-        const word = yield fetch("https://random-word.ryanrk.com/api/en/word/random/?maxlength=6");
+        const word = yield fetch("https://random-word-api.vercel.app/api?words=1");
         const wordDataa = yield word.json();
         const wordData = wordDataa[0];
         const data = yield fetch(`https://www.googleapis.com/books/v1/volumes/?q=${yield wordData}`);
@@ -103,6 +135,9 @@ function getBook() {
         //         reviewIsVideo: false,
         //     },
         // });
+        const authorR = book.items[0].volumeInfo.authors
+            ? book.items[0].volumeInfo.authors[0]
+            : "-";
         return {
             data: {
                 user: "NaN",
@@ -128,7 +163,7 @@ function getBook() {
                 summary: book.items[0].volumeInfo.description
                     ? book.items[0].volumeInfo.description
                     : "No Description",
-                review: "It's Really Good",
+                review: yield deepReview(book.items[0].volumeInfo.title, formatPublishedDate(book.items[0].volumeInfo.publishedDate), authorR),
                 rating: 5,
                 reviewIsVideo: false,
             },

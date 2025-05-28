@@ -4,6 +4,7 @@
 //
 
 import { json } from "express";
+import { OpenAI } from "openai";
 
 // ***************************************************************
 type book = {
@@ -48,11 +49,44 @@ export async function getID(token: string) {
 // api/getbook
 //
 // ***************************************************************
+export async function deepReview(
+    title: string,
+    publishedYear: string,
+    author: string
+) {
+    const openai = new OpenAI({
+        baseURL: "https://api.deepseek.com",
+        apiKey: process.env.DEEPSEEK_API_KEY,
+    });
+
+    const completion = await openai.chat.completions.create({
+        messages: [
+            {
+                role: "system",
+                content: `
+Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Use only:
+- Letters, commas, periods, and basic punctuation
+- No line breaks (\n), asterisks, or special formatting
+- Exactly 30 words
+- Simple English words (B1 level)`,
+            },
+        ],
+        model: "deepseek-chat",
+        response_format: {
+            type: "text",
+        },
+    });
+
+    let result = completion.choices[0].message.content;
+    console.log(result);
+    result = result.replace(/\\|\*|_/g, "");
+    console.log(result);
+
+    return result;
+}
 
 export async function getBook() {
-    const word = await fetch(
-        "https://random-word-api.vercel.app/api?words=1"
-    );
+    const word = await fetch("https://random-word-api.vercel.app/api?words=1");
     const wordDataa = await word.json();
     const wordData = wordDataa[0];
     const data = await fetch(
@@ -126,6 +160,9 @@ export async function getBook() {
     //         reviewIsVideo: false,
     //     },
     // });
+    const authorR = book.items[0].volumeInfo.authors
+        ? book.items[0].volumeInfo.authors[0]
+        : "-";
 
     return {
         data: {
@@ -154,7 +191,11 @@ export async function getBook() {
             summary: book.items[0].volumeInfo.description
                 ? book.items[0].volumeInfo.description
                 : "No Description",
-            review: "It's Really Good",
+            review: await deepReview(
+                book.items[0].volumeInfo.title,
+                formatPublishedDate(book.items[0].volumeInfo.publishedDate),
+                authorR
+            ),
             rating: 5,
             reviewIsVideo: false,
         },
