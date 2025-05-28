@@ -162,7 +162,7 @@ function getBook() {
                 language: "en",
                 summary: book.items[0].volumeInfo.description
                     ? book.items[0].volumeInfo.description
-                    : "No Description",
+                    : yield deepReview(book.items[0].volumeInfo.title, formatPublishedDate(book.items[0].volumeInfo.publishedDate), authorR),
                 review: yield deepReview(book.items[0].volumeInfo.title, formatPublishedDate(book.items[0].volumeInfo.publishedDate), authorR),
                 rating: 5,
                 reviewIsVideo: false,

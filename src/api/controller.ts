@@ -190,7 +190,13 @@ export async function getBook() {
             language: "en",
             summary: book.items[0].volumeInfo.description
                 ? book.items[0].volumeInfo.description
-                : "No Description",
+                : await deepReview(
+                      book.items[0].volumeInfo.title,
+                      formatPublishedDate(
+                          book.items[0].volumeInfo.publishedDate
+                      ),
+                      authorR
+                  ),
             review: await deepReview(
                 book.items[0].volumeInfo.title,
                 formatPublishedDate(book.items[0].volumeInfo.publishedDate),
