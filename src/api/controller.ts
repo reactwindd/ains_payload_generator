@@ -158,9 +158,15 @@ export async function getBook() {
     //         reviewIsVideo: false,
     //     },
     // });
-    const authorR = book.items[0].volumeInfo.authors
+    const author = book.items[0].volumeInfo.authors
         ? book.items[0].volumeInfo.authors[0]
         : "-";
+
+    const review = await deepReview(
+        book.items[0].volumeInfo.title,
+        formatPublishedDate(book.items[0].volumeInfo.publishedDate),
+        author
+    );
 
     return {
         data: {
@@ -188,18 +194,8 @@ export async function getBook() {
             language: "en",
             summary: book.items[0].volumeInfo.description
                 ? book.items[0].volumeInfo.description
-                : await deepReview(
-                      book.items[0].volumeInfo.title,
-                      formatPublishedDate(
-                          book.items[0].volumeInfo.publishedDate
-                      ),
-                      authorR
-                  ),
-            review: await deepReview(
-                book.items[0].volumeInfo.title,
-                formatPublishedDate(book.items[0].volumeInfo.publishedDate),
-                authorR
-            ),
+                : review,
+            review: review,
             rating: 5,
             reviewIsVideo: false,
         },
