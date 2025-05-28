@@ -62,9 +62,7 @@ Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Us
             },
         });
         let result = completion.choices[0].message.content;
-        console.log(result);
         result = result.replace(/\\|\*|_/g, "");
-        console.log(result);
         return result;
     });
 }
