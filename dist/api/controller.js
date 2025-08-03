@@ -13,7 +13,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBook = exports.deepReview = exports.getID = void 0;
+exports.getBook = exports.deepSummary = exports.deepReview = exports.getID = void 0;
 const openai_1 = require("openai");
 // ***************************************************************
 //
@@ -49,11 +49,11 @@ function deepReview(title, publishedYear, author) {
                 {
                     role: "system",
                     content: `
-Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Use only:
+Write a 15-word review of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
 - Letters, commas, periods, and basic punctuation
 - No line breaks (\n), asterisks, or special formatting
-- Exactly 30 words
-- Simple English words (B1 level)`,
+- Exactly 15 words
+- Simple English words (A0 level)`,
                 },
             ],
             model: "deepseek-chat",
@@ -67,6 +67,35 @@ Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Us
     });
 }
 exports.deepReview = deepReview;
+function deepSummary(title, publishedYear, author) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const openai = new openai_1.OpenAI({
+            baseURL: "https://api.deepseek.com",
+            apiKey: process.env.DEEPSEEK_API_KEY,
+        });
+        const completion = yield openai.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: `
+Write a 15-word summary of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
+- Letters, commas, periods, and basic punctuation
+- No line breaks (\n), asterisks, or special formatting
+- Exactly 15 words
+- Simple English words (A0 level)`,
+                },
+            ],
+            model: "deepseek-chat",
+            response_format: {
+                type: "text",
+            },
+        });
+        let result = completion.choices[0].message.content;
+        result = result.replace(/\\|\*|_/g, "");
+        return result;
+    });
+}
+exports.deepSummary = deepSummary;
 function getBook() {
     return __awaiter(this, void 0, void 0, function* () {
         const word = yield fetch("https://random-word-api.vercel.app/api?words=1");
@@ -96,47 +125,11 @@ function getBook() {
         if (!book.items[0].volumeInfo.publishedDate) {
             book.items[0].volumeInfo.publishedDate = "-";
         }
-        // **********************************************************
-        //
-        // Only For Debugging Purposes
-        //
-        // **********************************************************
-        // console.log({
-        //     data: {
-        //         user: userData.id,
-        //         type: "book",
-        //         date: formatDate(Date.now()),
-        //         title: book.items[0].volumeInfo.title,
-        //         bookType: "physical",
-        //         category: "fiction",
-        //         noOfPage: book.items[0].volumeInfo.pageCount
-        //             ? book.items[0].volumeInfo.pageCount
-        //             : 0,
-        //         isbn: book.items[0].volumeInfo.industryIdentifiers
-        //             ? book.items[0].volumeInfo.industryIdentifiers[0].identifier
-        //             : "-",
-        //         author: book.items[0].volumeInfo.authors
-        //             ? book.items[0].volumeInfo.authors[0]
-        //             : "-",
-        //         publisher: book.items[0].volumeInfo.publisher
-        //             ? book.items[0].volumeInfo.publisher
-        //             : "-",
-        //         publishedYear: formatPublishedDate(
-        //             book.items[0].volumeInfo.publishedDate
-        //         ),
-        //         language: "en",
-        //         summary: book.items[0].volumeInfo.description
-        //             ? book.items[0].volumeInfo.description
-        //             : "No Description",
-        //         review: "It's Really Good",
-        //         rating: 5,
-        //         reviewIsVideo: false,
-        //     },
-        // });
         const author = book.items[0].volumeInfo.authors
             ? book.items[0].volumeInfo.authors[0]
             : "-";
         const review = yield deepReview(book.items[0].volumeInfo.title, formatPublishedDate(book.items[0].volumeInfo.publishedDate), author);
+        const summary = yield deepSummary(book.items[0].volumeInfo.title, formatPublishedDate(book.items[0].volumeInfo.publishedDate), author);
         return {
             data: {
                 user: "NaN",
@@ -159,9 +152,7 @@ function getBook() {
                     : "-",
                 publishedYear: formatPublishedDate(book.items[0].volumeInfo.publishedDate),
                 language: "en",
-                summary: book.items[0].volumeInfo.description
-                    ? book.items[0].volumeInfo.description
-                    : review,
+                summary: summary,
                 review: review,
                 rating: 5,
                 reviewIsVideo: false,
@@ -170,72 +161,4 @@ function getBook() {
     });
 }
 exports.getBook = getBook;
-// ***************************************************************
-//
-// api/insertRecord
-//
-// ***************************************************************
-// export async function insertRecord(token: string): Promise<book> {
-//     const user = await fetch("https://jombaca-api.jazro.com.my/api/users/me", {
-//         method: "GET",
-//         headers: {
-//             Authorization: `Bearer ${token}`,
-//             Origin: "https://ains.moe.gov.my",
-//         },
-//     });
-// const book = await getBook(token);
-// console.log(book);
-// let bookData = book;
-// let userData = await user.json();
-// console.log(bookData);
-// let body = JSON.stringify({
-//     data: {
-//         user: userData.id,
-//         type: "book",
-//         date: bookData.data.date,
-//         title: bookData.data.title,
-//         bookType: "physical",
-//         category: "fiction",
-//         noOfPage: bookData.data.noOfPage,
-//         isbn: bookData.data.isbn,
-//         author: bookData.data.author,
-//         publisher: bookData.data.publisher,
-//         publishedYear: bookData.data.publishedYear,
-//         language: "en",
-//         summary: bookData.data.summary,
-//         review: "It's Really Good",
-//         rating: 5,
-//         reviewIsVideo: false,
-//     },
-// });
-//     const data = await fetch(
-//         "https://jombaca-api.jazro.com.my/api/nilam-records",
-//         {
-//             method: "POST",
-//             headers: {
-//                 Authorization: `Bearer ${token}`,
-//                 Origin: "https://ains.moe.gov.my",
-//                 "Content-Type": "application/json",
-//                 Accept: "application/json, text/plain, */*",
-//             },
-//             // body: body,
-//         }
-//     );
-//     let result = await data.json();
-//     return result;
-// }
-// export async function findPerson(token: string) {
-//     const data = await fetch(
-//         "https://jombaca-api.jazro.com.my/api/nilam-records?sort[-1]=createdAt&populate=*",
-//         {
-//             method: "GET",
-//             headers: {
-//                 Authorization: `Bearer ${token}`,
-//                 Origin: "https://ains.moe.gov.my",
-//             },
-//         }
-//     );
-//     const result = await data.json();
-//     return result;
-// }
 //# sourceMappingURL=controller.js.map
