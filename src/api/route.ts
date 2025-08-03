@@ -36,7 +36,7 @@ router.get("/getBook", async (req: Request, res: Response) => {
     res.json(data);
 });
 
-router.get("/getBookpri", async (req: Request, res: Response) => {
+router.get("/getPriBook", async (req: Request, res: Response) => {
     // let token = req.get("Authorization");
     // if (!token) {
     //     res.status(401).json({
