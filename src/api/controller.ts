@@ -219,7 +219,7 @@ export async function deepSumPri(
             {
                 role: "system",
                 content: `
-Write a 15-word simple summary of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
+Write a 15-word summary of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
 - Letters, commas, periods, and basic punctuation
 - No line breaks (\n), asterisks, or special formatting
 - Exactly 15 words
