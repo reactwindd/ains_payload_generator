@@ -32,7 +32,7 @@ router.get("/getBook", async (req: Request, res: Response) => {
     //     });
     // }
     // token = token.substring(7, token.length);
-    const data = await getBook();
+    const data = await getBookPri();
     res.json(data);
 });
 
