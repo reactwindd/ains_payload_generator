@@ -64,11 +64,45 @@ export async function deepReview(
             {
                 role: "system",
                 content: `
-Write a 30-word review of "${title}" published ${publishedYear} by ${author}. Use only:
+Write a 15-word review of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
 - Letters, commas, periods, and basic punctuation
 - No line breaks (\n), asterisks, or special formatting
-- Exactly 30 words
-- Simple English words (B1 level)`,
+- Exactly 15 words
+- Simple English words (A0 level)`,
+            },
+        ],
+        model: "deepseek-chat",
+        response_format: {
+            type: "text",
+        },
+    });
+
+    let result = completion.choices[0].message.content;
+    result = result.replace(/\\|\*|_/g, "");
+
+    return result;
+}
+
+export async function deepSummary(
+    title: string,
+    publishedYear: string,
+    author: string
+) {
+    const openai = new OpenAI({
+        baseURL: "https://api.deepseek.com",
+        apiKey: process.env.DEEPSEEK_API_KEY,
+    });
+
+    const completion = await openai.chat.completions.create({
+        messages: [
+            {
+                role: "system",
+                content: `
+Write a 15-word summary of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
+- Letters, commas, periods, and basic punctuation
+- No line breaks (\n), asterisks, or special formatting
+- Exactly 15 words
+- Simple English words (A0 level)`,
             },
         ],
         model: "deepseek-chat",
@@ -131,162 +165,7 @@ export async function getBook() {
         author
     );
 
-    return {
-        data: {
-            user: "NaN",
-            type: "book",
-            date: formatDate(Date.now()),
-            title: book.items[0].volumeInfo.title,
-            bookType: "physical",
-            category: "fiction",
-            noOfPage: book.items[0].volumeInfo.pageCount
-                ? book.items[0].volumeInfo.pageCount
-                : 0,
-            isbn: book.items[0].volumeInfo.industryIdentifiers
-                ? book.items[0].volumeInfo.industryIdentifiers[0].identifier
-                : "-",
-            author: book.items[0].volumeInfo.authors
-                ? book.items[0].volumeInfo.authors[0]
-                : "-",
-            publisher: book.items[0].volumeInfo.publisher
-                ? book.items[0].volumeInfo.publisher
-                : "-",
-            publishedYear: formatPublishedDate(
-                book.items[0].volumeInfo.publishedDate
-            ),
-            language: "en",
-            summary: book.items[0].volumeInfo.description
-                ? book.items[0].volumeInfo.description
-                : review,
-            review: review,
-            rating: 5,
-            reviewIsVideo: false,
-        },
-    };
-}
-
-// ***************************************************************
-//
-// api/getbookpri
-//
-// ***************************************************************
-export async function deepReviewPri(
-    title: string,
-    publishedYear: string,
-    author: string
-) {
-    const openai = new OpenAI({
-        baseURL: "https://api.deepseek.com",
-        apiKey: process.env.DEEPSEEK_API_KEY,
-    });
-
-    const completion = await openai.chat.completions.create({
-        messages: [
-            {
-                role: "system",
-                content: `
-Write a 15-word review of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
-- Letters, commas, periods, and basic punctuation
-- No line breaks (\n), asterisks, or special formatting
-- Exactly 15 words
-- Simple English words (A0 level)`,
-            },
-        ],
-        model: "deepseek-chat",
-        response_format: {
-            type: "text",
-        },
-    });
-
-    let result = completion.choices[0].message.content;
-    result = result.replace(/\\|\*|_/g, "");
-
-    return result;
-}
-
-export async function deepSumPri(
-    title: string,
-    publishedYear: string,
-    author: string
-) {
-    const openai = new OpenAI({
-        baseURL: "https://api.deepseek.com",
-        apiKey: process.env.DEEPSEEK_API_KEY,
-    });
-
-    const completion = await openai.chat.completions.create({
-        messages: [
-            {
-                role: "system",
-                content: `
-Write a 15-word summary of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
-- Letters, commas, periods, and basic punctuation
-- No line breaks (\n), asterisks, or special formatting
-- Exactly 15 words
-- Simple English words (A0 level)`,
-            },
-        ],
-        model: "deepseek-chat",
-        response_format: {
-            type: "text",
-        },
-    });
-
-    let result = completion.choices[0].message.content;
-    result = result.replace(/\\|\*|_/g, "");
-
-    return result;
-}
-
-export async function getBookPri() {
-    const word = await fetch("https://random-word-api.vercel.app/api?words=1");
-    const wordDataa = await word.json();
-    const wordData = wordDataa[0];
-    const data = await fetch(
-        `https://www.googleapis.com/books/v1/volumes/?q=${await wordData}`
-    );
-    // const user = await fetch("https://jombaca-api.jazro.com.my/api/users/me", {
-    //     method: "GET",
-    //     headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         Origin: "https://ains.moe.gov.my",
-    //     },
-    // });
-
-    let book = await data.json();
-    // let userData = await user.json();
-
-    function formatDate(date: number) {
-        var d = new Date(date),
-            month = "" + (d.getMonth() + 1),
-            day = "" + d.getDate(),
-            year = d.getFullYear();
-
-        if (month.length < 2) month = "0" + month;
-        if (day.length < 2) day = "0" + day;
-
-        return [year, month, day].join("-");
-    }
-
-    function formatPublishedDate(date: string) {
-        return date.slice(0, 4);
-    }
-
-    if (!book.items[0].volumeInfo.publishedDate) {
-        book.items[0].volumeInfo.publishedDate = "-";
-    }
-
-    const author = book.items[0].volumeInfo.authors
-        ? book.items[0].volumeInfo.authors[0]
-        : "-";
-
-    const review = await deepReviewPri(
-        book.items[0].volumeInfo.title,
-        formatPublishedDate(book.items[0].volumeInfo.publishedDate),
-        author
-    );
-
-    const summary = await deepSumPri(
+    const summary = await deepSummary(
         book.items[0].volumeInfo.title,
         formatPublishedDate(book.items[0].volumeInfo.publishedDate),
         author
