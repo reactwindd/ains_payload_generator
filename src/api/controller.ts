@@ -67,7 +67,7 @@ export async function deepReview(
 Write a 15-word review of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
 - Letters, commas, periods, and basic punctuation
 - No line breaks (\n), asterisks, or special formatting
-- Exactly 15 words
+- Exactly 25 words
 - Simple English words (A0 level)`,
             },
         ],
