@@ -24,6 +24,7 @@ type book = {
     review: string;
     rating: number;
     reviewIsVideo: boolean;
+    provider: string;
 };
 
 // ***************************************************************
@@ -199,6 +200,7 @@ export async function getBook() {
             review: review,
             rating: 5,
             reviewIsVideo: false,
+            provider: "a",
         },
     };
 }
