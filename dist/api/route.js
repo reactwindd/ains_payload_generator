@@ -45,17 +45,24 @@ router.get("/getBook", (req, res) => __awaiter(void 0, void 0, void 0, function*
     const data = yield (0, controller_1.getBook)();
     res.json(data);
 }));
-// router.get("/insertRecord", async (req: Request, res: Response) => {
-//     let token = req.get("Authorization");
-//     if (!token) {
-//         res.status(401).json({
-//             error: "Unauthorized",
-//         });
-//     }
-//     token = token.substring(7, token.length);
-//     const data = await insertRecord(token);
-//     res.json(data);
-// });
+router.get("/insertRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let token = req.get("Authorization");
+    let cookie = req.get("Cookie");
+    let userid = req.body.get("userid");
+    if (!token) {
+        res.status(401).json({
+            error: "Unauthorized: Invalid Token",
+        });
+    }
+    if (!token) {
+        res.status(401).json({
+            error: "Unauthorized: Invalid Cookies",
+        });
+    }
+    token = token.substring(7, token.length);
+    const data = yield (0, controller_1.insertRecord)(token, cookie, userid);
+    res.json(data);
+}));
 // router.get("/findPerson", async (req: Request, res: Response) => {
 //     let token = req.get("Authorization");
 //     if (!token) {

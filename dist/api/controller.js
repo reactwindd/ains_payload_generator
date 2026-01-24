@@ -12,9 +12,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBook = exports.deepSummary = exports.deepReview = exports.getID = void 0;
+exports.getBook = exports.deepSummary = exports.deepReview = exports.insertRecord = exports.getID = void 0;
 const openai_1 = require("openai");
+const crypto_js_1 = __importDefault(require("crypto-js"));
 // ***************************************************************
 //
 // api/getid
@@ -38,6 +42,96 @@ exports.getID = getID;
 // api/getbook
 //
 // ***************************************************************
+function insertRecord(token, cookie, userid) {
+    return __awaiter(this, void 0, void 0, function* () {
+        function verifyToken(token, originalPayload) {
+            try {
+                const bytes = crypto_js_1.default.AES.decrypt(token, process.env.SECRET_KEY);
+                const decryptedText = bytes.toString(crypto_js_1.default.enc.Utf8);
+                const decryptedJSON = JSON.parse(decryptedText);
+                // Verification logic: Check key counts and User ID
+                const isMatch = decryptedJSON.user === originalPayload.user &&
+                    decryptedJSON.title === originalPayload.title;
+                if (isMatch) {
+                    console.log("✅ VERIFICATION SUCCESS: Provider token is valid and readable.");
+                    return true;
+                }
+                else {
+                    console.error("❌ VERIFICATION FAILED: Data mismatch.");
+                    return false;
+                }
+            }
+            catch (e) {
+                console.error("❌ VERIFICATION ERROR: Decryption failed. Check Secret Key.");
+                return false;
+            }
+        }
+        function forgeAndVerify() {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const response = yield fetch("https://bookgenerator.vercel.app/api/getbook");
+                    const json = yield response.json();
+                    let book = json.data;
+                    book.user = userid;
+                    // 1. Prepare internal payload
+                    const internal = {
+                        user: book.user,
+                        type: book.type,
+                        date: book.date,
+                        title: book.title,
+                        category: book.category,
+                        author: book.author,
+                        publisher: book.publisher,
+                        language: book.language,
+                        summary: book.summary,
+                        review: book.review,
+                    };
+                    // 2. Generate Token
+                    const token = crypto_js_1.default.AES.encrypt(JSON.stringify(internal), process.env.SECRET_KEY).toString();
+                    // 3. Verify BEFORE outputting
+                    if (verifyToken(token, internal)) {
+                        book.provider = token;
+                        return JSON.stringify({ data: book }, null, 2);
+                    }
+                }
+                catch (error) {
+                    console.error("Process failed:", error);
+                }
+            });
+        }
+        const data = yield forgeAndVerify();
+        const url = "https://ains-api.moe.gov.my/api/nilam-records/submit";
+        const options = {
+            method: "POST",
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",
+                Accept: "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                Authorization: "Bearer TOKEN",
+                Origin: "https://ains.moe.gov.my",
+                Referer: "https://ains.moe.gov.my/",
+                Cookie: "koa.sess...",
+                "Content-Type": "application/json",
+            },
+            body: data,
+        };
+        try {
+            const response = yield fetch(url, options);
+            const data = yield response.json();
+            console.log(data);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    });
+}
+exports.insertRecord = insertRecord;
+// ***************************************************************
+//
+// api/getbook
+//
+// ***************************************************************
 function deepReview(title, publishedYear, author) {
     return __awaiter(this, void 0, void 0, function* () {
         const openai = new openai_1.OpenAI({
@@ -52,7 +146,7 @@ function deepReview(title, publishedYear, author) {
 Write a 15-word review of ${title} published ${publishedYear} by ${author} in perspective of a primary school learner non native speaker tone. Use only:
 - Letters, commas, periods, and basic punctuation
 - No line breaks (\n), asterisks, or special formatting
-- Exactly 15 words
+- Exactly 25 words
 - Simple English words (A0 level)`,
                 },
             ],
@@ -156,6 +250,7 @@ function getBook() {
                 review: review,
                 rating: 5,
                 reviewIsVideo: false,
+                provider: "a",
             },
         };
     });
