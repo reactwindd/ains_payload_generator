@@ -228,7 +228,12 @@ Write a 15-word summary of ${title} published ${publishedYear} by ${author} in p
 }
 
 export async function getBook() {
-    const word = await fetch("https://random-word-api.herokuapp.com/word");
+    const word = await fetch("https://api.api-ninjas.com/v2/randomword", {
+        method: "GET",
+        headers: {
+            "X-Api-Key": process.env.RANDOM_WORD_API_KEY,
+        },
+    });
     const wordDataa = await word.json();
     const wordData = wordDataa[0];
     const data = await fetch(
