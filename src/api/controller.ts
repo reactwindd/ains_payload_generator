@@ -234,16 +234,8 @@ export async function getBook() {
     const data = await fetch(
         `https://www.googleapis.com/books/v1/volumes?q=intitle:${await wordData}`,
     );
-    // const user = await fetch("https://jombaca-api.jazro.com.my/api/users/me", {
-    //     method: "GET",
-    //     headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         Origin: "https://ains.moe.gov.my",
-    //     },
-    // });
 
     let book = await data.json();
-    // let userData = await user.json();
 
     function formatDate(date: number) {
         var d = new Date(date),
