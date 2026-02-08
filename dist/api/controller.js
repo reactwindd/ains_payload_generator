@@ -200,7 +200,7 @@ function getBook() {
         });
         const wordDataa = yield word.json();
         const wordData = wordDataa[0];
-        const data = yield fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${yield wordData}`);
+        const data = yield fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${yield wordData}&key=${process.env.GOOGLE_BOOK_API}`);
         let book = yield data.json();
         function formatDate(date) {
             var d = new Date(date), month = "" + (d.getMonth() + 1), day = "" + d.getDate(), year = d.getFullYear();

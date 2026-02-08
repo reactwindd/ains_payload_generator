@@ -237,7 +237,7 @@ export async function getBook() {
     const wordDataa = await word.json();
     const wordData = wordDataa[0];
     const data = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=intitle:${await wordData}`,
+        `https://www.googleapis.com/books/v1/volumes?q=intitle:${await wordData}&key=${process.env.GOOGLE_BOOK_API}`,
     );
 
     let book = await data.json();
