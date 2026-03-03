@@ -192,11 +192,11 @@ Write a 15-word summary of ${title} published ${publishedYear} by ${author} in p
 exports.deepSummary = deepSummary;
 function getBook() {
     return __awaiter(this, void 0, void 0, function* () {
-        const word = yield fetch("https://random-word-api.herokuapp.com/word", {
+        const word = yield fetch("https://random-words-api.vercel.app/word", {
             method: "GET",
         });
         const wordDataa = yield word.json();
-        const wordData = wordDataa[0];
+        const wordData = wordDataa.word;
         const data = yield fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${yield wordData}&key=${process.env.GOOGLE_BOOK_API}`);
         let book = yield data.json();
         function formatDate(date) {

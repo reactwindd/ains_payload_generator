@@ -228,11 +228,11 @@ Write a 15-word summary of ${title} published ${publishedYear} by ${author} in p
 }
 
 export async function getBook() {
-    const word = await fetch("https://random-word-api.herokuapp.com/word", {
+    const word = await fetch("https://random-words-api.vercel.app/word", {
         method: "GET",
     });
     const wordDataa = await word.json();
-    const wordData = wordDataa[0];
+    const wordData = wordDataa.word;
     const data = await fetch(
         `https://www.googleapis.com/books/v1/volumes?q=intitle:${await wordData}&key=${process.env.GOOGLE_BOOK_API}`,
     );
