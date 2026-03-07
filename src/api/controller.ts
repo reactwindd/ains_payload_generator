@@ -228,7 +228,7 @@ Write a 15-word summary of ${title} published ${publishedYear} by ${author} in p
 }
 
 export async function getBook() {
-    const word = await fetch("https://random-words-api.vercel.app/word", {
+    const word = await fetch("https://pineappleacorn.vercel.app/word", {
         method: "GET",
     });
     const wordDataa = await word.json();
